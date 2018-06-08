@@ -2,7 +2,7 @@
 // @name         TagPro Rolling Chat
 // @description  When typing out a message, you'll be able to use the arrow keys for movement.
 // @author       Ko
-// @version      2.0
+// @version      2.1
 // @include      *.koalabeast.com:*
 // @include      *.jukejuice.com:*
 // @include      *.newcompte.fr:*
@@ -88,7 +88,7 @@ if (always_arrow) {
                 // Not necesarry, but useful for other scripts to 'hook onto'
                 if (!releasing && tagpro.events.keyDown) tagpro.events.keyDown.forEach(f => f.keyDown(arrow));
                 if (releasing && tagpro.events.keyUp) tagpro.events.keyUp.forEach(f => f.keyUp(arrow));
-                tagpro.players[tagpro.playerId][arrow] = !releasing;
+                tagpro.ping.avg&&setTimeout(()=>(tagpro.players[tagpro.playerId][arrow]=!releasing),tagpro.ping.avg/2);
             }
         }
     });
