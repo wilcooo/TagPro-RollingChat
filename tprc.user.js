@@ -2,7 +2,7 @@
 // @name         TagPro Rolling Chat
 // @description  When typing out a message, you'll be able to use the arrow keys for movement.
 // @author       Ko
-// @version      2.1
+// @version      2.2
 // @include      *.koalabeast.com:*
 // @include      *.jukejuice.com:*
 // @include      *.newcompte.fr:*
@@ -15,6 +15,8 @@
 
 
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 //     ### --- OPTIONS --- ###                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////  //
@@ -23,12 +25,13 @@
 const always_arrow = true;                                                            //  //
                                                                                       //  //
 // Want to keep your 'concept' chat after pressing ESC? true or false                 //  //
-const keep_chat = true;                                                               //  //
+const keep_chat = false;                                                              //  //
                                                                                       //  //
-// This options lets you use the ESC key to cancel a message, without the             //  //
-// scoreboard showing up. Pressing ESC again will open the scoreboard as usual.       //  //
-// (this is an upcoming feature, ETA: tomorrow.)                                      //  //
-const cancel_chat = true;                                                             //  //
+// This option will make it so that the scoreboard is shown                           //  //
+// as long as you're holding ESC, instead of that key being a toggle.                 //  //
+// This will make it faster to cancel a chat, because you don't have                  //  //
+// to press ESC twice. Changing your name in-game, however, will be impossible.       //  //
+const hold_scoreboard = false;                                                        //  //
                                                                                       //  //
 ////////////////////////////////////////////////////////////////////////////////////////  //
 //                                                     ### --- END OF OPTIONS --- ###     //
@@ -49,7 +52,7 @@ const cancel_chat = true;                                                       
 // It doesn't influence the features of this script in any way.
 var short_name = 'rollingchat';        // An alphabetic (no spaces/numbers) distinctive name for the script.
 var version = GM_info.script.version;  // The version number is automatically fetched from the metadata.
-var options = {always_arrow:always_arrow, keep_chat:keep_chat, cancel_chat:cancel_chat};
+var options = {always_arrow:always_arrow, keep_chat:keep_chat, hold_scoreboard:hold_scoreboard};
 tagpro.ready(function(){ if (!tagpro.scripts) tagpro.scripts = {}; tagpro.scripts[short_name]={version:version,options:options};});
 console.log('START: ' + GM_info.script.name + ' (v' + version + ' by ' + GM_info.script.author + ')');
 
@@ -115,17 +118,14 @@ if (keep_chat) {
 
 
 
-// And the last feature of this script: UPCOMING
 
-if (cancel_chat) {
 
-    console.warn('The "cancel_chat" option of the Rolling Chat script doesn\'t work yet. Check again in a day or two.');
+// Hold scoreboard
 
-    /*
-    var org_showOptions = tagpro.showOptions;
+if (hold_scoreboard) {
 
-    tagpro.showOptions = function(){
-        if (!tagpro.disableControls) return org_showOptions();
-    };
-    */
+    document.addEventListener('keydown', function(keydown) {
+        if ( tagpro.keys.showOptions.includes(keydown.keyCode) ) tagpro.showOptions();
+    });
+
 }
