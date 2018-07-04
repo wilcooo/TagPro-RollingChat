@@ -2,7 +2,7 @@
 // @name         TagPro Rolling Chat
 // @description  When typing out a message, you'll be able to use the arrow keys for movement.
 // @author       Ko
-// @version      2.2
+// @version      3.0
 // @include      *.koalabeast.com:*
 // @include      *.jukejuice.com:*
 // @include      *.newcompte.fr:*
@@ -14,118 +14,50 @@
 
 
 
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////
-//     ### --- OPTIONS --- ###                                                            //
-////////////////////////////////////////////////////////////////////////////////////////  //
-                                                                                      //  //
-// Want to use the arrow keys while chatting? true or false                           //  //
-const always_arrow = true;                                                            //  //
-                                                                                      //  //
-// Want to keep your 'concept' chat after pressing ESC? true or false                 //  //
-const keep_chat = false;                                                              //  //
-                                                                                      //  //
-// This option will make it so that the scoreboard is shown                           //  //
-// as long as you're holding ESC, instead of that key being a toggle.                 //  //
-// This will make it faster to cancel a chat, because you don't have                  //  //
-// to press ESC twice. Changing your name in-game, however, will be impossible.       //  //
-const hold_scoreboard = false;                                                        //  //
-                                                                                      //  //
-////////////////////////////////////////////////////////////////////////////////////////  //
-//                                                     ### --- END OF OPTIONS --- ###     //
-////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-//////////////////////////////////////
-// SCROLL FURTHER AT YOUR OWN RISK! //
-//////////////////////////////////////
-
-
-
-
 // These lines announce that this script is running (handy for other scripts, possibly):
 // It doesn't influence the features of this script in any way.
 var short_name = 'rollingchat';        // An alphabetic (no spaces/numbers) distinctive name for the script.
 var version = GM_info.script.version;  // The version number is automatically fetched from the metadata.
-var options = {always_arrow:always_arrow, keep_chat:keep_chat, hold_scoreboard:hold_scoreboard};
-tagpro.ready(function(){ if (!tagpro.scripts) tagpro.scripts = {}; tagpro.scripts[short_name]={version:version,options:options};});
+tagpro.ready(function(){ if (!tagpro.scripts) tagpro.scripts = {}; tagpro.scripts[short_name]={version:version};});
 console.log('START: ' + GM_info.script.name + ' (v' + version + ' by ' + GM_info.script.author + ')');
 
 
+// Return if rollingchat is already enabled (f.e. included in another script)
+// Otherwise the keypresses will be sent twice
+if (tagpro.rollingchat) return;
+tagpro.rollingchat = true;
 
 
+// Wait for the game to be ready:
+tagpro.ready(function() {
 
+    // intercept all key presses and releases:
+    document.addEventListener('keydown', keyUpOrDown);
+    document.addEventListener('keyup', keyUpOrDown);
 
-if (always_arrow) {
+    function keyUpOrDown( event ) {
 
-    // Wait for the game to be ready:
-    tagpro.ready(function() {
+        // The key that is pressed/released (undefined when it is any other key)
+        var arrow = ['left','up','right','down'][[37,38,39,40].indexOf(event.keyCode)]
 
-        // intercept all key presses and releases:
-        document.addEventListener('keydown', keyUpOrDown);
-        document.addEventListener('keyup', keyUpOrDown);
+        // Only if the controls are disabled (usually while composing a message)
+        // AND the key is indeed an arrow (not undefined)
+        if (tagpro.disableControls && arrow) {
 
-        function keyUpOrDown( event ) {
+            // Whether you are releasing instead of pressing the key:
+            var releasing = event.type == 'keyup';
 
-            // The key that is pressed/released (undefined when it is any other key)
-            var arrow = ['left','up','right','down'][[37,38,39,40].indexOf(event.keyCode)]
+            // Prevent the 'default' thing to happen, which is the cursor moving through the message you are typing
+            event.preventDefault();
 
-            // Only if the controls are disabled (usually while composing a message)
-            // AND the key is indeed an arrow (not undefined)
-            if (tagpro.disableControls && arrow) {
+            // Send the key press/release to the server!
+            tagpro.sendKeyPress(arrow, releasing);
+            console.log('ROLLING ROLLING');
 
-                // Whether you are releasing instead of pressing the key:
-                var releasing = event.type == 'keyup';
-
-                // Prevent the 'default' thing to happen, which is the cursor moving through the message you are typing
-                event.preventDefault();
-
-                // Send the key press/release to the server!
-                tagpro.sendKeyPress(arrow, releasing);
-
-                // Not necesarry, but useful for other scripts to 'hook onto'
-                if (!releasing && tagpro.events.keyDown) tagpro.events.keyDown.forEach(f => f.keyDown(arrow));
-                if (releasing && tagpro.events.keyUp) tagpro.events.keyUp.forEach(f => f.keyUp(arrow));
-                tagpro.ping.avg&&setTimeout(()=>(tagpro.players[tagpro.playerId][arrow]=!releasing),tagpro.ping.avg/2);
-            }
+            // Not necesarry, but useful for other scripts to 'hook onto'
+            if (!releasing && tagpro.events.keyDown) tagpro.events.keyDown.forEach(f => f.keyDown(arrow));
+            if (releasing && tagpro.events.keyUp) tagpro.events.keyUp.forEach(f => f.keyUp(arrow));
+            tagpro.ping.avg&&setTimeout(()=>(tagpro.players[tagpro.playerId][arrow]=!releasing),tagpro.ping.avg/2);
         }
-    });
-}
-
-
-// And now for the keep_chat magic:
-
-if (keep_chat) {
-
-    // the box you type in:
-    var chat_input = document.getElementById('chat'),
-        backup = '';
-
-    // Backup your 'concept' when canceling the chat
-    document.addEventListener('keydown', function(keydown) {
-        if ( tagpro.keys.cancelChat.includes(keydown.keyCode) )
-            backup = chat_input.value;
-    });
-
-    // When 'opening' the chat, restore that backup (only if the box is empty):
-    chat_input.onfocus = function(){ if (!chat_input.value) chat_input.value = backup; backup = ''; };
-}
-
-
-
-
-
-// Hold scoreboard
-
-if (hold_scoreboard) {
-
-    document.addEventListener('keydown', function(keydown) {
-        if ( tagpro.keys.showOptions.includes(keydown.keyCode) ) tagpro.showOptions();
-    });
-
-}
+    }
+});
