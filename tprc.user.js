@@ -2,7 +2,7 @@
 // @name         TagPro Rolling Chat
 // @description  When typing out a message, you'll be able to use the arrow keys for movement.
 // @author       Ko
-// @version      3.0
+// @version      3.1
 // @include      *.koalabeast.com:*
 // @include      *.jukejuice.com:*
 // @include      *.newcompte.fr:*
@@ -22,14 +22,10 @@ tagpro.ready(function(){ if (!tagpro.scripts) tagpro.scripts = {}; tagpro.script
 console.log('START: ' + GM_info.script.name + ' (v' + version + ' by ' + GM_info.script.author + ')');
 
 
-// Return if rollingchat is already enabled (f.e. included in another script)
-// Otherwise the keypresses will be sent twice
-if (tagpro.rollingchat) return;
-tagpro.rollingchat = true;
+(function enableRollingChat(){
 
-
-// Wait for the game to be ready:
-tagpro.ready(function() {
+    // It is perfectly fine to add this function (unchanged) to your own script.
+    // Multiple instances of "rollingchat" can run simultaniously without problems.
 
     // intercept all key presses and releases:
     document.addEventListener('keydown', keyUpOrDown);
@@ -50,9 +46,11 @@ tagpro.ready(function() {
             // Prevent the 'default' thing to happen, which is the cursor moving through the message you are typing
             event.preventDefault();
 
+            // Return if already pressed/released
+            if (tagpro.players[tagpro.playerId].pressing[arrow] != releasing) return;
+
             // Send the key press/release to the server!
             tagpro.sendKeyPress(arrow, releasing);
-            console.log('ROLLING ROLLING');
 
             // Not necesarry, but useful for other scripts to 'hook onto'
             if (!releasing && tagpro.events.keyDown) tagpro.events.keyDown.forEach(f => f.keyDown(arrow));
@@ -60,4 +58,4 @@ tagpro.ready(function() {
             tagpro.ping.avg&&setTimeout(()=>(tagpro.players[tagpro.playerId][arrow]=!releasing),tagpro.ping.avg/2);
         }
     }
-});
+})();
